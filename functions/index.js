@@ -10,6 +10,7 @@ const {
   addComment,
   addLike,
   removeLike,
+  removeScream,
 } = require("./middleware/screams");
 const {
   login,
@@ -26,6 +27,7 @@ app.get("/scream/:screamId", getScream);
 app.post("/scream/:screamId/comment", FBAuth, addComment);
 app.post("/scream/:screamId/like", FBAuth, addLike);
 app.delete("/scream/:screamId/like", FBAuth, removeLike);
+app.delete("/scream/:screamId", FBAuth, removeScream);
 
 // TODO : delete scream
 // TODO : like scream
