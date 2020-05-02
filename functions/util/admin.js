@@ -2,7 +2,7 @@ const admin = require("firebase-admin");
 var serviceAccount = require("../serviceAccount.json");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://social-app-a0b02.firebaseio.com",
+  databaseURL: "database_url",
 });
 const db = admin.firestore();
 
