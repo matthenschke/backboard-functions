@@ -177,11 +177,79 @@ module.exports = {
         data.forEach((doc) => {
           userData.likes.push(doc.data());
         });
+        return db
+          .collection("notifications")
+          .where("recipient", "==", req.user.handle)
+          .orderBy("createdAt", "desc")
+          .limit(10)
+          .get();
+      })
+      .then((data) => {
+        userData.notifications = [];
+
+        data.forEach((doc) => {
+          console.log(doc.data());
+          userData.notifications.push({
+            ...doc.data(),
+            id: doc.id,
+          });
+        });
         return res.json(userData);
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).json({ error: err.code });
+        return res.status(500).json({ error: err.code });
+      });
+  },
+
+  getUserDetails: (req, res) => {
+    const { userHandle } = req.params;
+    const userData = {};
+    db.doc(`/users/${userHandle}`)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          userData.credentials = doc.data();
+          return db
+            .collection("screams")
+            .where("userHandle", "==", userHandle)
+            .orderBy("createdAt", "desc")
+            .get();
+        }
+
+        return res.status(404).json({ error: "user not found" });
+      })
+      .then((snapshot) => {
+        userData.screams = [];
+        snapshot.forEach((doc) => {
+          userData.screams = {
+            ...doc.data(),
+            screamId: doc.id,
+          };
+        });
+        return res.json(userData);
+      })
+      .catch((err) => {
+        console.error(err);
+        return res.status(500).json({ error: err.code });
+      });
+  },
+
+  markNotificationsRead: (req, res) => {
+    let batch = db.batch();
+    const { notificationIds } = req.body;
+    notificationIds.forEach((id) => {
+      const notification = db.doc(`/notifications/${id}`);
+      batch.update(notification, { read: true });
+    });
+    batch
+      .commit()
+      .then(() => {
+        return res.json({ message: "notifications marked read" });
+      })
+      .catch((err) => {
+        console.error(err);
+        return res.status(500).json({ error: err });
       });
   },
 };

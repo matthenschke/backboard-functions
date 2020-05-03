@@ -27,6 +27,17 @@ const db = {
       createdAt: "2020-04-24T22:53:40.365Z",
     },
   ],
+
+  notifications: [
+    {
+      to: "user",
+      from: "otheruser",
+      read: true | false,
+      createdAt: "2020-04-24T22:53:40.365Z",
+      type: "like" | "comment",
+      screamId: "hxvsycgyfs7gvet",
+    },
+  ],
 };
 
 const userDetails = {
