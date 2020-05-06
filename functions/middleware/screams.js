@@ -78,7 +78,7 @@ module.exports = {
     const { body } = req.body;
 
     if (body.trim() === "") {
-      return res.status(400).json({ error: "Comment must not be empty" });
+      return res.status(400).json({ comment: "Comment must not be empty" });
     }
 
     const newComment = {

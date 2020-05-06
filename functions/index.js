@@ -62,14 +62,10 @@ exports.createNotificationOnLike = functions.firestore
             screamId: doc.id,
           });
         }
-        return;
-      })
-      .then(() => {
-        return;
+        return true;
       })
       .catch((err) => {
         console.error(err);
-        return;
       });
   });
 
@@ -80,16 +76,12 @@ exports.deleteNotificationOnDislike = functions.firestore
       .get()
       .then((doc) => {
         if (doc.exists) {
-          db.doc(`/notifications/${snapshot.id}`).delete();
+          return db.doc(`/notifications/${snapshot.id}`).delete();
         }
-        return;
-      })
-      .then(() => {
-        return;
+        return false;
       })
       .catch((err) => {
         console.error(err);
-        return;
       });
   });
 exports.createNotificationOnComment = functions.firestore
@@ -111,13 +103,72 @@ exports.createNotificationOnComment = functions.firestore
             screamId: doc.id,
           });
         }
-        return;
-      })
-      .then(() => {
-        return;
+        return true;
       })
       .catch((err) => {
         console.error(err);
-        return;
+      });
+  });
+
+exports.onUserImageChanged = functions.firestore
+  .document("/users/{userId}")
+  .onUpdate((change) => {
+    const { before, after } = change;
+    if (before.data().imageUrl !== after.data().imageUrl) {
+      const { imageUrl, handle: userHandle } = change.after.data();
+      const batch = db.batch();
+      return db
+        .collection("screams")
+        .where("userHandle", "==", userHandle)
+        .get()
+        .then((data) => {
+          data.forEach((doc) => {
+            const scream = db.doc(`/screams/${doc.id}`);
+            batch.update(scream, { userImage: imageUrl });
+          });
+          return batch.commit();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+    return true;
+  });
+
+exports.onScreamDelete = functions.firestore
+  .document("/screams/{screamId}") // {screamId} is a params field provided by the context object
+  .onDelete((snapshot, context) => {
+    const screamId = context.params.screamId;
+    const batch = db.batch();
+    return db
+      .collection("comments")
+      .where("screamId", "==", screamId)
+      .get()
+      .then((data) => {
+        data.forEach((doc) => {
+          const comment = db.doc(`/comments/${doc.id}`);
+          batch.delete(comment);
+        });
+        return db.collection("likes").where("screamId", "==", screamId).get();
+      })
+      .then((data) => {
+        data.forEach((doc) => {
+          const like = db.doc(`/likes/${doc.id}`);
+          batch.delete(like);
+        });
+        return db
+          .collection("notifications")
+          .where("screamId", "==", screamId)
+          .get();
+      })
+      .then((data) => {
+        data.forEach((doc) => {
+          const notification = db.doc(`/notifications/${doc.id}`);
+          batch.delete(notification);
+        });
+        return batch.commit();
+      })
+      .catch((err) => {
+        console.error(err);
       });
   });

@@ -27,13 +27,7 @@ module.exports = {
         return res.json({ token });
       })
       .catch((err) => {
-        if (err.code === "auth/wrong-password")
-          return res
-            .status(403)
-            .json({ general: "Wrong credentials, please try again" });
-        else {
-          return res.status(500).json({ error: err.code });
-        }
+        return res.status(500).json({ error: err.code });
       });
   },
   signUp: (req, res) => {
@@ -85,12 +79,14 @@ module.exports = {
           token,
         });
       })
-      .catch((e) => {
-        console.error(e);
-        if (e.code === "auth/email-already-in-use") {
+      .catch((err) => {
+        console.error(err);
+        if (err.code === "auth/email-already-in-use") {
           return res.status(400).json({ email: "email is already in use" });
         } else {
-          return res.status(500).json({ error: e.code });
+          return res
+            .status(500)
+            .json({ general: "Something went wrong, please try again!" });
         }
       });
   },
