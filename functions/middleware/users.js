@@ -27,7 +27,9 @@ module.exports = {
         return res.json({ token });
       })
       .catch((err) => {
-        return res.status(500).json({ error: err.code });
+        return res
+          .status(500)
+          .json({ general: "Wrong credentials, please try again" });
       });
   },
   signUp: (req, res) => {
@@ -141,8 +143,6 @@ module.exports = {
 
   addUserDetails: (req, res) => {
     let userDetails = reduceUserDetails(req.body);
-    if (Object.keys(userDetails).length === 0) {
-    }
     db.doc(`/users/${req.user.handle}`)
       .update(userDetails)
       .then(() => {
