@@ -34,7 +34,7 @@ app.delete("/scream/:screamId", FBAuth, removeScream);
 
 app.post("/signup", signUp);
 app.post("/login", login);
-app.post("/users/image", FBAuth, uploadImage);
+app.post("/user/image", FBAuth, uploadImage);
 app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
 app.get("/user/:userHandle", getUserDetails);

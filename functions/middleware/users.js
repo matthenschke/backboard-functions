@@ -126,7 +126,9 @@ module.exports = {
           },
         })
         .then(() => {
+          console.log("hi");
           const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
+          console.log(imageUrl);
           return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
         })
         .then(() => {
