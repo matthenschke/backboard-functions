@@ -133,7 +133,7 @@ module.exports = {
           return res.status(404).json({ error: "scream not found" });
         }
         screamData = doc.data();
-        screamData.id = doc.id;
+        screamData.screamId = doc.id;
         return likeDocument.get();
       })
       .then((data) => {
@@ -178,7 +178,7 @@ module.exports = {
           return res.status(404).json({ error: "scream not found" });
         }
         screamData = doc.data();
-        screamData.id = doc.id;
+        screamData.screamId = doc.id;
         return likeDocument.get();
       })
       .then((data) => {
