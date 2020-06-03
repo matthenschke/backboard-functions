@@ -102,7 +102,7 @@ module.exports = {
         return db.collection("comments").add(newComment);
       })
       .then((doc) => {
-        return res.json({ message: `document ${doc.id}` });
+        return res.json(newComment);
       })
       .catch((err) => {
         console.error(err);
