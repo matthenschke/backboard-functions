@@ -220,10 +220,10 @@ module.exports = {
       .then((snapshot) => {
         userData.screams = [];
         snapshot.forEach((doc) => {
-          userData.screams = {
+          userData.screams.push({
             ...doc.data(),
             screamId: doc.id,
-          };
+          });
         });
         return res.json(userData);
       })
