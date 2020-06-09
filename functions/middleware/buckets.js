@@ -1,8 +1,8 @@
 const { db } = require("../util/admin");
 
 module.exports = {
-  createScream: (req, res) => {
-    const newScream = {
+  createBucket: (req, res) => {
+    const newBucket = {
       body: req.body.body,
       userHandle: req.user.handle,
       createdAt: new Date().toISOString(),
@@ -10,62 +10,62 @@ module.exports = {
       likeCount: 0,
       commentCount: 0,
     };
-    if (newScream.body.trim() === "") {
+    if (newBucket.body.trim() === "") {
       return res.status(400).json({ body: "Must not be empty" });
     }
-    db.collection("screams")
-      .add(newScream)
+    db.collection("buckets")
+      .add(newBucket)
       .then((doc) => {
-        const resScream = newScream;
-        resScream.screamId = doc.id;
-        return res.json(resScream);
+        const resBucket = newBucket;
+        resBucket.bucketId = doc.id;
+        return res.json(resBucket);
       })
       .catch((e) => {
         console.error(e);
         return res.status(500).json({ error: "something went wrong" });
       });
   },
-  getAllScreams: (req, res) => {
-    db.collection("screams")
+  getAllBuckets: (req, res) => {
+    db.collection("buckets")
       .orderBy("createdAt", "desc")
       .get()
       .then((data) => {
-        let screams = [];
+        let buckets = [];
         data.docs.forEach((doc) => {
-          screams.push({
-            screamId: doc.id,
+          buckets.push({
+            bucketId: doc.id,
             ...doc.data(),
           });
         });
-        return res.json(screams);
+        return res.json(buckets);
       })
       .catch((err) => {
         console.error(err);
         return res.status(500).json({ error: err.code });
       });
   },
-  getScream: (req, res) => {
-    let screamData = {};
-    db.doc(`/screams/${req.params.screamId}`)
+  getBucket: (req, res) => {
+    let bucketData = {};
+    db.doc(`/buckets/${req.params.bucketId}`)
       .get()
       .then((doc) => {
         if (!doc.exists) {
-          return res.status(404).json({ error: "scream not found" });
+          return res.status(404).json({ error: "bucket not found" });
         }
-        screamData = doc.data();
-        screamData.screamId = doc.id;
+        bucketData = doc.data();
+        bucketData.bucketId = doc.id;
         return db
           .collection("comments")
-          .where("screamId", "==", req.params.screamId)
+          .where("bucketId", "==", req.params.bucketId)
           .orderBy("createdAt", "desc")
           .get();
       })
       .then((data) => {
-        screamData.comments = [];
+        bucketData.comments = [];
         data.forEach((doc) => {
-          screamData.comments.push(doc.data());
+          bucketData.comments.push(doc.data());
         });
-        return res.json(screamData);
+        return res.json(bucketData);
       })
       .catch((err) => {
         console.error(err);
@@ -74,7 +74,7 @@ module.exports = {
   },
 
   addComment: (req, res) => {
-    const { screamId } = req.params;
+    const { bucketId } = req.params;
     const { body } = req.body;
 
     if (body.trim() === "") {
@@ -85,15 +85,15 @@ module.exports = {
       body,
       userHandle: req.user.handle,
       createdAt: new Date().toISOString(),
-      screamId,
+      bucketId,
       userImage: req.user.imageUrl,
     };
 
-    db.doc(`/screams/${screamId}`)
+    db.doc(`/buckets/${bucketId}`)
       .get()
       .then((doc) => {
         if (!doc.exists) {
-          return res.status(404).json({ error: "scream not found" });
+          return res.status(404).json({ error: "bucket not found" });
         }
 
         return doc.ref.update({ commentCount: doc.data().commentCount + 1 });
@@ -110,30 +110,30 @@ module.exports = {
       });
   },
   addLike: (req, res) => {
-    const { screamId } = req.params;
+    const { bucketId } = req.params;
     const newLike = {
-      screamId,
+      bucketId,
       userHandle: req.user.handle,
     };
 
     const likeDocument = db
       .collection("likes")
       .where("userHandle", "==", req.user.handle)
-      .where("screamId", "==", screamId)
+      .where("bucketId", "==", bucketId)
       .limit(1);
 
-    const screamDocument = db.doc(`/screams/${screamId}`);
+    const bucketDocument = db.doc(`/buckets/${bucketId}`);
 
-    let screamData = {};
+    let bucketData = {};
 
-    screamDocument
+    bucketDocument
       .get()
       .then((doc) => {
         if (!doc.exists) {
-          return res.status(404).json({ error: "scream not found" });
+          return res.status(404).json({ error: "bucket not found" });
         }
-        screamData = doc.data();
-        screamData.screamId = doc.id;
+        bucketData = doc.data();
+        bucketData.bucketId = doc.id;
         return likeDocument.get();
       })
       .then((data) => {
@@ -142,14 +142,14 @@ module.exports = {
             .collection("likes")
             .add(newLike)
             .then(() => {
-              screamData.likeCount++;
-              return screamDocument.update({ likeCount: screamData.likeCount });
+              bucketData.likeCount++;
+              return bucketDocument.update({ likeCount: bucketData.likeCount });
             })
             .then(() => {
-              return res.json(screamData);
+              return res.json(bucketData);
             });
         } else {
-          return res.status(400).json({ error: "scream already liked" });
+          return res.status(400).json({ error: "bucket already liked" });
         }
       })
       .catch((err) => {
@@ -159,41 +159,41 @@ module.exports = {
   },
 
   removeLike: (req, res) => {
-    const { screamId } = req.params;
+    const { bucketId } = req.params;
 
     const likeDocument = db
       .collection("likes")
       .where("userHandle", "==", req.user.handle)
-      .where("screamId", "==", screamId)
+      .where("bucketId", "==", bucketId)
       .limit(1);
 
-    const screamDocument = db.doc(`/screams/${screamId}`);
+    const bucketDocument = db.doc(`/buckets/${bucketId}`);
 
-    let screamData = {};
+    let bucketData = {};
 
-    screamDocument
+    bucketDocument
       .get()
       .then((doc) => {
         if (!doc.exists) {
-          return res.status(404).json({ error: "scream not found" });
+          return res.status(404).json({ error: "bucket not found" });
         }
-        screamData = doc.data();
-        screamData.screamId = doc.id;
+        bucketData = doc.data();
+        bucketData.bucketId = doc.id;
         return likeDocument.get();
       })
       .then((data) => {
         if (data.empty) {
-          return res.status(400).json({ error: "scream already disliked" });
+          return res.status(400).json({ error: "bucket already disliked" });
         } else {
           return db
             .doc(`/likes/${data.docs[0].id}`)
             .delete()
             .then(() => {
-              screamData.likeCount--;
-              return screamDocument.update({ likeCount: screamData.likeCount });
+              bucketData.likeCount--;
+              return bucketDocument.update({ likeCount: bucketData.likeCount });
             })
             .then(() => {
-              return res.json(screamData);
+              return res.json(bucketData);
             });
         }
       })
@@ -203,14 +203,14 @@ module.exports = {
       });
   },
 
-  removeScream: (req, res) => {
-    const { screamId } = req.params;
-    const document = db.doc(`/screams/${screamId}`);
+  removeBucket: (req, res) => {
+    const { bucketId } = req.params;
+    const document = db.doc(`/buckets/${bucketId}`);
     document
       .get()
       .then((doc) => {
         if (!doc.exists) {
-          return res.status(404).json({ error: "scream not found" });
+          return res.status(404).json({ error: "bucket not found" });
         }
         if (doc.data().userHandle !== req.user.handle) {
           return res.status(403).json({ error: "unauthorized" });
@@ -219,7 +219,7 @@ module.exports = {
         return doc.ref.delete();
       })
       .then(() => {
-        return res.json({ message: "scream deleted successfully" });
+        return res.json({ message: "bucket deleted successfully" });
       })
       .catch((err) => {
         console.error(err);

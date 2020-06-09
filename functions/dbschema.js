@@ -1,8 +1,8 @@
 const db = {
-  screams: [
+  buckets: [
     {
       userHandle: "user",
-      body: "this is scream body",
+      body: "this is bucket body",
       createdAt: "2020-04-24T22:53:40.365Z",
       likeCount: 5,
       commentCount: 5,
@@ -22,8 +22,8 @@ const db = {
   comments: [
     {
       userHandle: "user",
-      screamId: "hxvsycgyfs7gvet",
-      body: "sick scream dude",
+      bucketId: "hxvsycgyfs7gvet",
+      body: "sick bucket dude",
       createdAt: "2020-04-24T22:53:40.365Z",
     },
   ],
@@ -35,7 +35,7 @@ const db = {
       read: true | false,
       createdAt: "2020-04-24T22:53:40.365Z",
       type: "like" | "comment",
-      screamId: "hxvsycgyfs7gvet",
+      bucketId: "hxvsycgyfs7gvet",
     },
   ],
 };
@@ -56,11 +56,11 @@ const userDetails = {
   likes: [
     {
       userHandle: "user",
-      screamId: "shfughuwudgcdufhje3n4beud",
+      bucketId: "shfughuwudgcdufhje3n4beud",
     },
     {
       userHandle: "user",
-      screamId: "dgrgtubj5thh",
+      bucketId: "dgrgtubj5thh",
     },
   ],
 };
