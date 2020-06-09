@@ -209,7 +209,7 @@ module.exports = {
         if (doc.exists) {
           userData.credentials = doc.data();
           return db
-            .collection("screams")
+            .collection("buckets")
             .where("userHandle", "==", userHandle)
             .orderBy("createdAt", "desc")
             .get();
@@ -218,11 +218,11 @@ module.exports = {
         return res.status(404).json({ error: "user not found" });
       })
       .then((snapshot) => {
-        userData.screams = [];
+        userData.buckets = [];
         snapshot.forEach((doc) => {
-          userData.screams.push({
+          userData.buckets.push({
             ...doc.data(),
-            screamId: doc.id,
+            bucketId: doc.id,
           });
         });
         return res.json(userData);

@@ -7,14 +7,14 @@ const app = express();
 const { db } = require("./util/admin");
 
 const {
-  getAllScreams,
-  createScream,
-  getScream,
+  getAllBuckets,
+  createBucket,
+  getBucket,
   addComment,
   addLike,
   removeLike,
-  removeScream,
-} = require("./middleware/screams");
+  removeBucket,
+} = require("./middleware/buckets");
 const {
   login,
   signUp,
@@ -27,13 +27,13 @@ const {
 const FBAuth = require("./util/fbAuth");
 
 app.use(cors());
-app.get("/screams", getAllScreams);
-app.post("/scream", FBAuth, createScream);
-app.get("/scream/:screamId", getScream);
-app.post("/scream/:screamId/comment", FBAuth, addComment);
-app.post("/scream/:screamId/like", FBAuth, addLike);
-app.delete("/scream/:screamId/like", FBAuth, removeLike);
-app.delete("/scream/:screamId", FBAuth, removeScream);
+app.get("/buckets", getAllBuckets);
+app.post("/bucket", FBAuth, createBucket);
+app.get("/bucket/:bucketId", getBucket);
+app.post("/bucket/:bucketId/comment", FBAuth, addComment);
+app.post("/bucket/:bucketId/like", FBAuth, addLike);
+app.delete("/bucket/:bucketId/like", FBAuth, removeLike);
+app.delete("/bucket/:bucketId", FBAuth, removeBucket);
 
 app.post("/signup", signUp);
 app.post("/login", login);
@@ -49,7 +49,7 @@ exports.api = functions.https.onRequest(app);
 exports.createNotificationOnLike = functions.firestore
   .document("/likes/{id}")
   .onCreate((snapshot) => {
-    db.doc(`/screams/${snapshot.data().screamId}`)
+    db.doc(`/buckets/${snapshot.data().bucketId}`)
       .get()
       .then((doc) => {
         if (
@@ -62,7 +62,7 @@ exports.createNotificationOnLike = functions.firestore
             sender: snapshot.data().userHandle,
             type: "like",
             read: false,
-            screamId: doc.id,
+            bucketId: doc.id,
           });
         }
         return true;
@@ -75,7 +75,7 @@ exports.createNotificationOnLike = functions.firestore
 exports.deleteNotificationOnDislike = functions.firestore
   .document("/likes/{id}")
   .onDelete((snapshot) => {
-    db.doc(`/screams/${snapshot.data().screamId}`)
+    db.doc(`/buckets/${snapshot.data().bucketId}`)
       .get()
       .then((doc) => {
         if (doc.exists) {
@@ -90,7 +90,7 @@ exports.deleteNotificationOnDislike = functions.firestore
 exports.createNotificationOnComment = functions.firestore
   .document("/comments/{id}")
   .onCreate((snapshot) => {
-    db.doc(`/screams/${snapshot.data().screamId}`)
+    db.doc(`/buckets/${snapshot.data().bucketId}`)
       .get()
       .then((doc) => {
         if (
@@ -103,7 +103,7 @@ exports.createNotificationOnComment = functions.firestore
             sender: snapshot.data().userHandle,
             type: "comment",
             read: false,
-            screamId: doc.id,
+            bucketId: doc.id,
           });
         }
         return true;
@@ -121,13 +121,13 @@ exports.onUserImageChanged = functions.firestore
       const { imageUrl, handle: userHandle } = change.after.data();
       const batch = db.batch();
       return db
-        .collection("screams")
+        .collection("buckets")
         .where("userHandle", "==", userHandle)
         .get()
         .then((data) => {
           data.forEach((doc) => {
-            const scream = db.doc(`/screams/${doc.id}`);
-            batch.update(scream, { userImage: imageUrl });
+            const bucket = db.doc(`/buckets/${doc.id}`);
+            batch.update(bucket, { userImage: imageUrl });
           });
           return batch.commit();
         })
@@ -138,21 +138,21 @@ exports.onUserImageChanged = functions.firestore
     return true;
   });
 
-exports.onScreamDelete = functions.firestore
-  .document("/screams/{screamId}") // {screamId} is a params field provided by the context object
+exports.onBucketDelete = functions.firestore
+  .document("/buckets/{bucketId}") // {bucketId} is a params field provided by the context object
   .onDelete((snapshot, context) => {
-    const screamId = context.params.screamId;
+    const bucketId = context.params.bucketId;
     const batch = db.batch();
     return db
       .collection("comments")
-      .where("screamId", "==", screamId)
+      .where("bucketId", "==", bucketId)
       .get()
       .then((data) => {
         data.forEach((doc) => {
           const comment = db.doc(`/comments/${doc.id}`);
           batch.delete(comment);
         });
-        return db.collection("likes").where("screamId", "==", screamId).get();
+        return db.collection("likes").where("bucketId", "==", bucketId).get();
       })
       .then((data) => {
         data.forEach((doc) => {
@@ -161,7 +161,7 @@ exports.onScreamDelete = functions.firestore
         });
         return db
           .collection("notifications")
-          .where("screamId", "==", screamId)
+          .where("bucketId", "==", bucketId)
           .get();
       })
       .then((data) => {
