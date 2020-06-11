@@ -101,6 +101,7 @@ module.exports = {
     const busboy = new BusBoy({ headers: req.headers });
     let imageFileName;
     let imageToBeUploaded = {};
+    let imageUrl;
 
     busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
       if (mimetype !== "image/jpeg" && mimetype !== "image/png") {
@@ -127,12 +128,12 @@ module.exports = {
         })
         .then(() => {
           console.log("hi");
-          const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
+          imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
           console.log(imageUrl);
           return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
         })
         .then(() => {
-          return res.json({ message: "Image uploaded successfully" });
+          return res.json({ imageUrl, userHandle: req.user.handle });
         })
         .catch((err) => {
           console.error(err);
