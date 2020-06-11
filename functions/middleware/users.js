@@ -202,6 +202,7 @@ module.exports = {
 
   getUserDetails: (req, res) => {
     const { userHandle } = req.params;
+    console.log(userHandle);
     const userData = {};
     db.doc(`/users/${userHandle}`)
       .get()
@@ -214,7 +215,7 @@ module.exports = {
             .orderBy("createdAt", "desc")
             .get();
         }
-
+        console.log("hi");
         return res.status(404).json({ error: "user not found" });
       })
       .then((snapshot) => {
@@ -228,7 +229,7 @@ module.exports = {
         return res.json(userData);
       })
       .catch((err) => {
-        console.error(err);
+        console.log(err);
         return res.status(500).json({ error: err.code });
       });
   },
@@ -246,7 +247,7 @@ module.exports = {
         return res.json({ message: "notifications marked read" });
       })
       .catch((err) => {
-        console.error(err);
+        console.log(err);
         return res.status(500).json({ error: err });
       });
   },
